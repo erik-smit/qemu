@@ -80,6 +80,16 @@
 #define FTGMAC100_APTC_TXPOLL_TIME_SEL      (1 << 12)
 
 /*
+ * Interrupt Timer Control register
+ */
+#define FTGMAC100_ITC_TXINT_TIME_SEL(x)     (((x) >> 15) & 0x1)
+#define FTGMAC100_ITC_TXINT_THR(x)          (((x) >> 12) & 0x7)
+#define FTGMAC100_ITC_TXINT_CNT(x)          (((x) >> 8) & 0xf)
+#define FTGMAC100_ITC_RXINT_TIME_SEL(x)     (((x) >> 7) & 0x1)
+#define FTGMAC100_ITC_RXINT_THR(x)          (((x) >> 4) & 0x7)
+#define FTGMAC100_ITC_RXINT_CNT(x)          ((x) & 0xf)
+
+/*
  * DMA burst length and arbitration control register
  */
 #define FTGMAC100_DBLAC_RXBURST_SIZE(x)     (((x) >> 8) & 0x3)
@@ -547,7 +557,8 @@ static void ftgmac100_do_tx(FTGMAC100State *s, uint32_t tx_ring,
             qemu_send_packet(qemu_get_queue(s->nic), s->frame, frame_size);
             ptr = s->frame;
             frame_size = 0;
-            if (flags & FTGMAC100_TXDES1_TXIC) {
+            if (FTGMAC100_ITC_TXINT_THR(s->itc) > 0 ||
+                flags & FTGMAC100_TXDES1_TXIC) {
                 s->isr |= FTGMAC100_INT_XPKT_ETH;
             }
         }
